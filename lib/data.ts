@@ -33,8 +33,11 @@ async function load<T>(f: () => Promise<T>): Promise<T | null> {
   try {
     return await f();
   } catch (e) {
-    if (BUILDING) return null;
-    throw e;
+    if (!BUILDING) throw e;
+    // Swallowed for the page, never for the build log: say which source failed and why.
+    const cause = e instanceof Error && e.cause ? ` (cause: ${String(e.cause)})` : "";
+    console.warn(`[cal-mesh-control] source unavailable at build: ${String(e)}${cause}`);
+    return null;
   }
 }
 
